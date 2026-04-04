@@ -48,7 +48,10 @@ output:
 
 memory:
   embedding:
-    provider: auto
+    provider: model2vec
+    # provider: sentence-transformer
+    # model: jinaai/jina-embeddings-v5-text-nano
+    # dimensions: 256
 
 compact:
   max_tokens: 1000000
