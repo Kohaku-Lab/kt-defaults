@@ -46,5 +46,9 @@ output:
   type: stdout
   controller_direct: true
 
+memory:
+  embedding:
+    provider: auto
+
 compact:
   max_tokens: 1000000
