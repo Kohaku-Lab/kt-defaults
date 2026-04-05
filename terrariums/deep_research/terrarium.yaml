@@ -1,22 +1,20 @@
 # Deep Research Terrarium
-# Multi-agent web research system: searches the web, reads pages,
-# synthesizes findings into comprehensive reports.
+# Multi-agent web research system: search, read, synthesize, cite.
 #
-# Inspired by OpenAI Deep Research, Google Gemini Deep Research,
-# Anthropic Claude Research, and Stanford STORM.
+# Topology (bidirectional where needed):
+#   root -> questions -> planner
+#   planner -> tasks -> researcher
+#   researcher -> findings -> synthesizer
+#   researcher -> tasks (can request more sub-questions)
+#   synthesizer -> drafts -> critic
+#   synthesizer -> tasks (can request follow-up searches)
+#   critic -> feedback -> planner (gaps found, re-search)
+#   critic -> final (approved)
+#   all -> report_to_root (auto-injected)
+#   team_chat for coordination
 #
 # Usage:
 #   kt terrarium run @kohaku-creatures/terrariums/deep_research/
-#
-# The root agent receives a research question, the planner breaks it
-# into sub-questions, researchers search in parallel, the synthesizer
-# combines findings, and the critic reviews for gaps.
-#
-# Topology:
-#   root -> questions -> planner -> tasks -> researcher (parallel)
-#   researcher -> findings -> synthesizer -> drafts -> critic
-#   critic -> feedback -> planner (re-search if gaps found)
-#   critic -> final (when satisfied)
 
 terrarium:
   name: deep_research
@@ -36,44 +34,42 @@ terrarium:
         WORKFLOW:
         1. Receive a research question from "questions"
         2. Break it into 3-7 specific sub-questions
-        3. For each, specify: what to search for, what kind of sources to look for
-        4. Send each sub-question as a separate message to "tasks"
-        5. If you receive feedback from the critic, generate additional
-           sub-questions to fill the identified gaps
+        3. Send each sub-question to "tasks"
+        4. If you receive feedback from the critic, generate additional
+           sub-questions to fill identified gaps
 
         RULES:
-        - Sub-questions should be independent (can be researched in parallel)
+        - Sub-questions should be independent (parallel-searchable)
         - Be specific: "what is X's pricing model" not "learn about X"
-        - Include both factual and analytical questions
-        - After receiving feedback, only generate NEW sub-questions (not repeats)
+        - After feedback, only generate NEW sub-questions
+        - Use team_chat to coordinate with researcher on priorities
       tools:
         - { name: think, type: builtin }
         - { name: web_search, type: builtin }
         - { name: send_message, type: builtin }
         - { name: wait_channel, type: builtin }
       channels:
-        listen: [questions, feedback]
-        can_send: [tasks]
+        listen: [questions, feedback, team_chat]
+        can_send: [tasks, team_chat]
 
     - name: researcher
       base_config: "@kohaku-creatures/creatures/general"
       system_prompt: |
-        You are a web researcher. You search the web, read pages, and extract
-        relevant information for research sub-questions.
+        You are a web researcher. You search, read pages, and extract info.
 
         WORKFLOW:
         1. Receive a sub-question from "tasks"
-        2. Search the web (web_search) with multiple query variations
-        3. Read the most promising pages (web_fetch)
-        4. Extract key facts, data points, quotes with source URLs
-        5. Send your findings to "findings" with citations
+        2. Search the web with multiple query variations
+        3. Read the most promising pages
+        4. Extract key facts with source URLs
+        5. Send findings to "findings"
+        6. If you find the question needs refinement, send clarification to "tasks"
 
         RULES:
         - Always include source URLs for every claim
         - Prefer primary sources over secondary
-        - Note conflicting information from different sources
-        - If a search yields nothing useful, say so (don't fabricate)
-        - Keep findings focused on the sub-question (no tangents)
+        - Note conflicting information
+        - If a search yields nothing useful, say so honestly
       tools:
         - { name: web_search, type: builtin }
         - { name: web_fetch, type: builtin }
@@ -82,28 +78,27 @@ terrarium:
         - { name: send_message, type: builtin }
         - { name: wait_channel, type: builtin }
       channels:
-        listen: [tasks]
-        can_send: [findings]
+        listen: [tasks, team_chat]
+        can_send: [findings, tasks, team_chat]
 
     - name: synthesizer
       base_config: "@kohaku-creatures/creatures/general"
       system_prompt: |
-        You are a research synthesizer. You combine findings from multiple
-        researchers into a coherent, well-structured report.
+        You are a research synthesizer. You combine findings into reports.
 
         WORKFLOW:
         1. Collect findings from "findings" (wait for multiple messages)
-        2. Organize by theme, not by source
-        3. Resolve contradictions between sources
-        4. Write a comprehensive report with sections, citations, and a summary
+        2. Organize by theme, resolve contradictions
+        3. Write a comprehensive report with citations
+        4. If you need more info, send follow-up questions to "tasks"
         5. Send the draft to "drafts"
 
         RULES:
-        - Every factual claim must have a citation (URL)
+        - Every claim must have a citation (URL)
         - Present multiple perspectives when sources disagree
-        - Include a "Key Findings" summary at the top
-        - Include a "Gaps and Limitations" section
-        - Use markdown formatting for readability
+        - Include "Key Findings" summary at top
+        - Include "Gaps and Limitations" section
+        - Use markdown formatting
       tools:
         - { name: think, type: builtin }
         - { name: write, type: builtin }
@@ -112,42 +107,41 @@ terrarium:
         - { name: send_message, type: builtin }
         - { name: wait_channel, type: builtin }
       channels:
-        listen: [findings]
-        can_send: [drafts]
+        listen: [findings, team_chat]
+        can_send: [drafts, tasks, team_chat]
 
     - name: critic
       base_config: "@kohaku-creatures/creatures/general"
       system_prompt: |
-        You are a research critic. You review research reports for quality,
-        completeness, accuracy, and bias.
+        You are a research critic. You review reports for quality and accuracy.
 
         WORKFLOW:
-        1. Read the draft report from "drafts"
-        2. Check: Are all claims supported by citations?
-        3. Check: Are there obvious gaps in coverage?
-        4. Check: Is there bias toward one perspective?
-        5. If significant gaps found: send specific follow-up questions to "feedback"
-        6. If report is satisfactory: send the final version to "final"
+        1. Read the draft from "drafts"
+        2. Check: claims supported by citations? Gaps in coverage? Bias?
+        3. If gaps found: send specific follow-up questions to "feedback"
+        4. If satisfactory: send final version to "final"
 
         RULES:
-        - Be constructive, not just critical
-        - Identify specific gaps ("missing: pricing comparison for X vs Y")
+        - Be constructive with specific actionable feedback
         - Maximum 2 feedback rounds, then approve with noted limitations
+        - Verify key claims by doing your own web searches
         - The final report should include your review notes
       tools:
         - { name: think, type: builtin }
         - { name: web_search, type: builtin }
+        - { name: web_fetch, type: builtin }
         - { name: read, type: builtin }
         - { name: send_message, type: builtin }
         - { name: wait_channel, type: builtin }
       channels:
-        listen: [drafts]
-        can_send: [feedback, final]
+        listen: [drafts, team_chat]
+        can_send: [feedback, final, team_chat]
 
   channels:
-    questions: { type: queue, description: "Research questions from user/root" }
-    tasks:     { type: queue, description: "Sub-questions from planner to researchers" }
+    questions: { type: queue, description: "Research questions from root" }
+    tasks:     { type: queue, description: "Sub-questions for researchers" }
     findings:  { type: queue, description: "Research findings with citations" }
     drafts:    { type: queue, description: "Draft reports for review" }
-    feedback:  { type: queue, description: "Critic feedback to planner for re-search" }
-    final:     { type: queue, description: "Final approved research reports" }
+    feedback:  { type: queue, description: "Critic feedback to planner" }
+    final:     { type: queue, description: "Final approved reports" }
+    team_chat: { type: broadcast, description: "Cross-creature coordination" }

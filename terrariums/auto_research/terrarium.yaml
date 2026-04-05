@@ -3,20 +3,21 @@
 # Automatically runs experiments, evaluates results, and iterates.
 #
 # The ratchet loop:
-#   ideator proposes hypothesis -> coder implements -> runner executes
-#   -> analyzer evaluates -> feedback to ideator (keep or discard)
+#   ideator proposes -> coder implements -> runner executes
+#   -> analyzer evaluates -> feedback to ideator (keep/discard)
+#
+# Topology (bidirectional where needed):
+#   root -> goals -> ideator
+#   ideator <-> coder (implementations + reverts)
+#   coder -> runner (experiments)
+#   runner -> analyzer (results)
+#   analyzer -> ideator (feedback loop)
+#   analyzer -> coder (revert requests)
+#   all -> report_to_root (auto-injected)
+#   team_chat for coordination
 #
 # Usage:
 #   kt terrarium run @kohaku-creatures/terrariums/auto_research/
-#
-# The root agent receives the research goal from the user and kicks off
-# the loop. Experiments run until stopped or a target metric is reached.
-#
-# Topology:
-#   root -> goals -> ideator -> implementations -> coder -> experiments
-#   -> runner -> results -> analyzer -> feedback -> ideator (loop)
-#   analyzer -> log (append-only experiment journal)
-#   writer listens on log, produces summaries on demand
 
 terrarium:
   name: auto_research
@@ -30,21 +31,21 @@ terrarium:
     - name: ideator
       base_config: "@kohaku-creatures/creatures/general"
       system_prompt: |
-        You are a research ideator. Your job is to propose experiment hypotheses.
+        You are a research ideator. You propose experiment hypotheses.
 
         WORKFLOW:
-        1. Read the research goal from the "goals" channel
-        2. Read feedback from previous experiments (if any) from "feedback"
+        1. Read research goals from "goals" channel
+        2. Read feedback from previous experiments from "feedback"
         3. Propose ONE concrete, testable hypothesis
         4. Describe the specific code change needed
         5. Send your proposal to "implementations"
 
         RULES:
         - Each proposal must be a single, atomic change
-        - Always explain WHY you think this will improve the metric
+        - Explain WHY you think this will improve the metric
         - Learn from failed experiments (read feedback carefully)
-        - Be creative but grounded in the codebase
         - Never propose the same change twice
+        - Use team_chat to discuss strategy with other creatures
       tools:
         - { name: read, type: builtin }
         - { name: glob, type: builtin }
@@ -54,8 +55,8 @@ terrarium:
         - { name: send_message, type: builtin }
         - { name: wait_channel, type: builtin }
       channels:
-        listen: [goals, feedback]
-        can_send: [implementations]
+        listen: [goals, feedback, team_chat]
+        can_send: [implementations, team_chat]
 
     - name: coder
       base_config: "@kohaku-creatures/creatures/general"
@@ -65,15 +66,17 @@ terrarium:
         WORKFLOW:
         1. Read a proposal from "implementations"
         2. Read the current codebase
-        3. Make the proposed changes (edit tool)
-        4. Verify the changes are syntactically correct
+        3. Make the proposed changes
+        4. Verify syntax is correct
         5. Send "ready" to "experiments" with a description of what changed
+
+        REVERT: When you receive a revert request on "reverts", undo the
+        last change and confirm on team_chat.
 
         RULES:
         - Make ONLY the changes described in the proposal
-        - Keep a backup: note what you changed so it can be reverted
-        - If the proposal is unclear, implement your best interpretation
-        - Test syntax with a dry run if possible
+        - Keep notes on what you changed (for reverting)
+        - If unclear, implement your best interpretation and note assumptions
       tools:
         - { name: read, type: builtin }
         - { name: write, type: builtin }
@@ -85,8 +88,8 @@ terrarium:
         - { name: send_message, type: builtin }
         - { name: wait_channel, type: builtin }
       channels:
-        listen: [implementations]
-        can_send: [experiments]
+        listen: [implementations, reverts, team_chat]
+        can_send: [experiments, team_chat]
 
     - name: runner
       base_config: "@kohaku-creatures/creatures/general"
@@ -95,15 +98,15 @@ terrarium:
 
         WORKFLOW:
         1. Receive "ready" signal from "experiments"
-        2. Run the experiment command (e.g., "python train.py", "uv run train.py")
-        3. Capture stdout/stderr and the target metric
-        4. Send the raw results to "results"
+        2. Run the experiment command (e.g., "python train.py")
+        3. Enforce a time limit (use timeout in bash)
+        4. Capture stdout/stderr and the target metric
+        5. Send raw results to "results"
 
         RULES:
-        - Enforce a time limit on experiments (use timeout in bash)
         - Always capture the metric value from output
-        - Report both the metric and any errors/warnings
-        - Do NOT interpret results, just report them faithfully
+        - Report errors faithfully, do NOT interpret results
+        - If experiment crashes, report the error to results
       tools:
         - { name: bash, type: builtin }
         - { name: read, type: builtin }
@@ -111,8 +114,8 @@ terrarium:
         - { name: send_message, type: builtin }
         - { name: wait_channel, type: builtin }
       channels:
-        listen: [experiments]
-        can_send: [results]
+        listen: [experiments, team_chat]
+        can_send: [results, team_chat]
 
     - name: analyzer
       base_config: "@kohaku-creatures/creatures/general"
@@ -122,33 +125,31 @@ terrarium:
         WORKFLOW:
         1. Read results from "results"
         2. Compare the metric to the current baseline
-        3. DECIDE: keep (metric improved) or discard (metric worsened/unchanged)
-        4. If KEEP: update the baseline, send positive feedback
-        5. If DISCARD: revert the changes (or instruct coder to revert)
-        6. Send analysis to "feedback" for the ideator
-        7. Log the experiment to "log"
+        3. DECIDE: keep (improved) or discard (worsened/unchanged)
+        4. If KEEP: update baseline, send positive feedback to "feedback"
+        5. If DISCARD: send revert request to "reverts", explain why in "feedback"
+        6. Log every experiment to team_chat
 
         RULES:
-        - Be strict: only keep changes that measurably improve the metric
-        - Include the metric delta in your feedback
-        - Track experiment count and cumulative improvement
-        - Suggest directions for the ideator based on patterns you see
+        - Be strict: only keep measurable improvements
+        - Include metric delta in feedback
+        - Suggest directions based on patterns across experiments
       tools:
         - { name: read, type: builtin }
         - { name: bash, type: builtin }
-        - { name: edit, type: builtin }
         - { name: think, type: builtin }
         - { name: scratchpad, type: builtin }
         - { name: send_message, type: builtin }
         - { name: wait_channel, type: builtin }
       channels:
-        listen: [results]
-        can_send: [feedback, log]
+        listen: [results, team_chat]
+        can_send: [feedback, reverts, team_chat]
 
   channels:
-    goals:           { type: queue, description: "Research goals from user/root" }
-    implementations: { type: queue, description: "Experiment proposals from ideator to coder" }
-    experiments:     { type: queue, description: "Ready-to-run experiments from coder to runner" }
-    results:         { type: queue, description: "Raw experiment results from runner to analyzer" }
-    feedback:        { type: queue, description: "Analysis feedback from analyzer back to ideator" }
-    log:             { type: broadcast, description: "Append-only experiment journal" }
+    goals:           { type: queue, description: "Research goals from root" }
+    implementations: { type: queue, description: "Proposals from ideator to coder" }
+    experiments:     { type: queue, description: "Ready experiments from coder to runner" }
+    results:         { type: queue, description: "Raw results from runner to analyzer" }
+    feedback:        { type: queue, description: "Analysis from analyzer back to ideator" }
+    reverts:         { type: queue, description: "Revert requests from analyzer to coder" }
+    team_chat:       { type: broadcast, description: "Cross-creature coordination" }
