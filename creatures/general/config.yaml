@@ -22,7 +22,6 @@ tools:
   - { name: scratchpad, type: builtin }
   - { name: info, type: builtin }
   - { name: ask_user, type: builtin }
-  - { name: http, type: builtin }
   - { name: json_read, type: builtin }
   - { name: json_write, type: builtin }
   - { name: send_message, type: builtin }
