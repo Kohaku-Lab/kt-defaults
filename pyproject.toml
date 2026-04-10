@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kt-defaults"
+version = "0.3.0"
+description = "Default creatures, terrariums, and plugins for KohakuTerrarium"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools]
+packages = ["kt_defaults"]

@@ -1,13 +1,13 @@
-name: kohaku-creatures
-version: "0.2.0"
-description: "Default creatures and terrariums for KohakuTerrarium"
+name: kt-defaults
+version: "0.3.0"
+description: "Default creatures, terrariums, and plugins for KohakuTerrarium"
 author: "Kohaku-Lab"
-repository: "https://github.com/Kohaku-Lab/kohaku-creatures"
+repository: "https://github.com/Kohaku-Lab/kt-defaults"
 
 creatures:
   - name: general
     path: creatures/general
-    description: "Base creature: 19 tools, 6 sub-agents, core personality"
+    description: "Base creature: 22 tools, 6 sub-agents, core personality"
 
   - name: swe
     path: creatures/swe
@@ -44,3 +44,24 @@ terrariums:
     path: terrariums/swe_team
     description: "SWE team with root agent, swe, and reviewer"
     uses: [swe, reviewer, root]
+
+  - name: deep_research
+    path: terrariums/deep_research
+    description: "Multi-agent web research: planner, researcher, synthesizer, critic"
+    uses: [general]
+
+  - name: auto_research
+    path: terrariums/auto_research
+    description: "Automated research loop: ideator, coder, runner, analyzer"
+    uses: [general]
+
+plugins:
+  - name: cost_tracker
+    module: kt_defaults.cost_tracker
+    class: CostTrackerPlugin
+    description: "Track LLM token usage and estimated cost per session"
+
+  - name: event_logger
+    module: kt_defaults.event_logger
+    class: EventLoggerPlugin
+    description: "Structured JSONL event log of all agent activity"

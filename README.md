@@ -1,22 +1,22 @@
-# kohaku-creatures
+# kt-defaults
 
-Default creatures and terrariums for [KohakuTerrarium](https://github.com/Kohaku-Lab/KohakuTerrarium).
+Default creatures, terrariums, and plugins for [KohakuTerrarium](https://github.com/Kohaku-Lab/KohakuTerrarium).
 
 ## Install
 
 ```bash
 # Install as a KohakuTerrarium package
-kt install https://github.com/Kohaku-Lab/kohaku-creatures.git
+kt install https://github.com/Kohaku-Lab/kt-defaults.git
 
 # Or install as editable (for development)
-kt install ./kohaku-creatures -e
+kt install ./kt-defaults -e
 ```
 
 ## Creatures
 
 | Name | Description | Base |
 |------|-------------|------|
-| `general` | Base creature: 23 tools, 6 sub-agents, web search/fetch, memory search | (none) |
+| `general` | Base creature: 22 tools, 6 sub-agents, web search/fetch, memory search | (none) |
 | `swe` | Software engineering specialist | general |
 | `reviewer` | Code review specialist | general |
 | `ops` | Infrastructure and operations specialist | general |
@@ -32,6 +32,13 @@ kt install ./kohaku-creatures -e
 | `auto_research` | Automated experiment loop (Karpathy's autoresearch pattern) | ideator, coder, runner, analyzer |
 | `deep_research` | Multi-agent web research with citations | planner, researcher, synthesizer, critic |
 
+## Plugins
+
+| Name | Description |
+|------|-------------|
+| `cost_tracker` | Track LLM token usage and estimated cost per session |
+| `event_logger` | Structured JSONL event log of all agent activity |
+
 ## Usage
 
 ```bash
@@ -39,65 +46,60 @@ kt install ./kohaku-creatures -e
 kt model default gemini-3.1-pro
 
 # Run a creature directly
-kt run @kohaku-creatures/creatures/swe
+kt run @kt-defaults/creatures/swe
 
 # Override model per-run
-kt run @kohaku-creatures/creatures/swe --llm mimo-v2-pro
+kt run @kt-defaults/creatures/swe --llm mimo-v2-pro
 
 # Run a terrarium
-kt terrarium run @kohaku-creatures/terrariums/swe_team
-
-# Run auto-research (automated experiment loop)
-kt terrarium run @kohaku-creatures/terrariums/auto_research
-
-# Run deep research (web research with citations)
-kt terrarium run @kohaku-creatures/terrariums/deep_research
+kt terrarium run @kt-defaults/terrariums/swe_team
 
 # Edit a creature config
-kt edit @kohaku-creatures/creatures/general
+kt edit @kt-defaults/creatures/general
+```
+
+### Using plugins
+
+Add to your creature's `config.yaml`:
+
+```yaml
+plugins:
+  - name: cost_tracker
+    type: package
+    module: kt_defaults.cost_tracker
+    class: CostTrackerPlugin
+    options:
+      budget_usd: 5.0
+      warn_at: 0.8
+
+  - name: event_logger
+    type: package
+    module: kt_defaults.event_logger
+    class: EventLoggerPlugin
+    options:
+      path: ./logs/events.jsonl
 ```
 
 ## Creating Your Own Package
 
-A creature/terrarium package is a directory with:
+A package is a directory with:
 
 ```
 my-package/
-  kohaku.yaml          # manifest (name, version, creatures, terrariums)
-  creatures/
-    my-agent/
-      config.yaml      # agent config (can use base_config: "@other-package/...")
-      prompts/
-        system.md
-  terrariums/
-    my-team/
-      terrarium.yaml
-```
-
-The `kohaku.yaml` manifest:
-
-```yaml
-name: my-package
-version: "1.0.0"
-description: "My custom agents"
-
-creatures:
-  - name: my-agent
-    path: creatures/my-agent
-    description: "A custom agent"
-    base: "@kohaku-creatures/creatures/general"
-
-terrariums:
-  - name: my-team
-    path: terrariums/my-team
-    description: "My team setup"
+  kohaku.yaml          # manifest (name, creatures, terrariums, plugins)
+  creatures/           # creature configs
+  terrariums/          # terrarium configs
+  my_package/          # Python package (for plugins/tools)
+    __init__.py
+    my_plugin.py
+  pyproject.toml       # makes Python code importable
 ```
 
 Cross-package references use `@package-name/path` syntax:
 
 ```yaml
 # In your creature's config.yaml
-base_config: "@kohaku-creatures/creatures/swe"
+base_config: "@kt-defaults/creatures/swe"
 ```
 
 ## License
