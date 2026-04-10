@@ -1,6 +1,6 @@
 name: swe
 version: "1.0"
-base_config: "@kohaku-creatures/creatures/general"
+base_config: "@kt-defaults/creatures/general"
 
 controller:
   # Default: uses kt model default. Override with --llm gpt-5.4

@@ -14,19 +14,19 @@
 #   team_chat for coordination
 #
 # Usage:
-#   kt terrarium run @kohaku-creatures/terrariums/deep_research/
+#   kt terrarium run @kt-defaults/terrariums/deep_research/
 
 terrarium:
   name: deep_research
 
   root:
-    base_config: "@kohaku-creatures/creatures/root"
+    base_config: "@kt-defaults/creatures/root"
     controller:
       tool_format: native
 
   creatures:
     - name: planner
-      base_config: "@kohaku-creatures/creatures/general"
+      base_config: "@kt-defaults/creatures/general"
       no_inherit: [tools, subagents]
       system_prompt_file: prompts/planner.md
       tools:
@@ -38,7 +38,7 @@ terrarium:
         can_send: [tasks, team_chat]
 
     - name: researcher
-      base_config: "@kohaku-creatures/creatures/general"
+      base_config: "@kt-defaults/creatures/general"
       no_inherit: [tools, subagents]
       system_prompt_file: prompts/researcher.md
       tools:
@@ -52,7 +52,7 @@ terrarium:
         can_send: [findings, tasks, team_chat]
 
     - name: synthesizer
-      base_config: "@kohaku-creatures/creatures/general"
+      base_config: "@kt-defaults/creatures/general"
       no_inherit: [tools, subagents]
       system_prompt_file: prompts/synthesizer.md
       tools:
@@ -66,7 +66,7 @@ terrarium:
         can_send: [drafts, tasks, team_chat]
 
     - name: critic
-      base_config: "@kohaku-creatures/creatures/general"
+      base_config: "@kt-defaults/creatures/general"
       no_inherit: [tools, subagents]
       system_prompt_file: prompts/critic.md
       tools:

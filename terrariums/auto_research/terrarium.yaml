@@ -17,19 +17,19 @@
 #   team_chat for coordination
 #
 # Usage:
-#   kt terrarium run @kohaku-creatures/terrariums/auto_research/
+#   kt terrarium run @kt-defaults/terrariums/auto_research/
 
 terrarium:
   name: auto_research
 
   root:
-    base_config: "@kohaku-creatures/creatures/root"
+    base_config: "@kt-defaults/creatures/root"
     controller:
       tool_format: native
 
   creatures:
     - name: ideator
-      base_config: "@kohaku-creatures/creatures/general"
+      base_config: "@kt-defaults/creatures/general"
       no_inherit: [tools, subagents]
       system_prompt_file: prompts/ideator.md
       tools:
@@ -44,7 +44,7 @@ terrarium:
         can_send: [implementations, team_chat]
 
     - name: coder
-      base_config: "@kohaku-creatures/creatures/general"
+      base_config: "@kt-defaults/creatures/general"
       no_inherit: [tools, subagents]
       system_prompt_file: prompts/coder.md
       tools:
@@ -62,7 +62,7 @@ terrarium:
         can_send: [experiments, team_chat]
 
     - name: runner
-      base_config: "@kohaku-creatures/creatures/general"
+      base_config: "@kt-defaults/creatures/general"
       no_inherit: [tools, subagents]
       system_prompt_file: prompts/runner.md
       tools:
@@ -75,7 +75,7 @@ terrarium:
         can_send: [results, team_chat]
 
     - name: analyzer
-      base_config: "@kohaku-creatures/creatures/general"
+      base_config: "@kt-defaults/creatures/general"
       no_inherit: [tools, subagents]
       system_prompt_file: prompts/analyzer.md
       tools:

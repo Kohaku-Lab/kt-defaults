@@ -1,5 +1,5 @@
 name: ops
 version: "1.0"
-base_config: "@kohaku-creatures/creatures/general"
+base_config: "@kt-defaults/creatures/general"
 
 system_prompt_file: prompts/system.md
