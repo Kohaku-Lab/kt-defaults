@@ -1,6 +1,6 @@
 name: kt-defaults
-version: "0.3.0"
-description: "Default creatures, terrariums, and plugins for KohakuTerrarium"
+version: "0.4.0"
+description: "Default creatures, terrariums, plugins, tools, I/O, and triggers for KohakuTerrarium"
 author: "Kohaku-Lab"
 repository: "https://github.com/Kohaku-Lab/kt-defaults"
 
@@ -57,11 +57,34 @@ terrariums:
 
 plugins:
   - name: cost_tracker
-    module: kt_defaults.cost_tracker
+    module: kt_defaults.plugins.cost_tracker
     class: CostTrackerPlugin
     description: "Track LLM token usage and estimated cost per session"
 
   - name: event_logger
-    module: kt_defaults.event_logger
+    module: kt_defaults.plugins.event_logger
     class: EventLoggerPlugin
     description: "Structured JSONL event log of all agent activity"
+
+tools:
+  - name: database
+    module: kt_defaults.tools.database
+    class: DatabaseTool
+    description: "Execute SQL queries against a SQLite database"
+
+io:
+  - name: discord_input
+    module: kt_defaults.io.discord
+    class: DiscordInput
+    description: "Receive messages from Discord channels"
+
+  - name: discord_output
+    module: kt_defaults.io.discord
+    class: DiscordOutput
+    description: "Send agent responses to Discord channels"
+
+triggers:
+  - name: webhook
+    module: kt_defaults.triggers.webhook
+    class: WebhookTrigger
+    description: "Receive HTTP POST webhooks as agent events"

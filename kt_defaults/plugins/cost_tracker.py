@@ -7,7 +7,7 @@ Usage:
     plugins:
       - name: cost_tracker
         type: package
-        module: kt_defaults.cost_tracker
+        module: kt_defaults.plugins.cost_tracker
         class: CostTrackerPlugin
         options:
           budget_usd: 5.0
