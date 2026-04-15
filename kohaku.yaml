@@ -66,6 +66,11 @@ plugins:
     class: EventLoggerPlugin
     description: "Structured JSONL event log of all agent activity"
 
+  - name: multimodal_guard
+    module: kt_defaults.plugins.multimodal_guard
+    class: MultimodalGuardPlugin
+    description: "Rewrite multimodal LLM input into text-only placeholders before model calls"
+
 tools:
   - name: database
     module: kt_defaults.tools.database
