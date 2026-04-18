@@ -1,0 +1,8 @@
+name: music
+version: "1.0"
+base_config: "@kt-biome/creatures/general"
+
+controller:
+  reasoning_effort: "${REASONING:medium}"
+
+system_prompt_file: prompts/system.md
