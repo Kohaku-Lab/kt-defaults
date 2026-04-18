@@ -8,7 +8,7 @@ Usage in config.yaml:
     tools:
       - name: database
         type: custom
-        module: kt_defaults.tools.database
+        module: kt_biome.tools.database
         class_name: DatabaseTool
         options:
           path: ./data/my.db      # path to SQLite database

@@ -3,11 +3,11 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "kt-defaults"
+name = "kt-biome"
 version = "0.4.0"
 description = "Default creatures, terrariums, plugins, tools, I/O, and triggers for KohakuTerrarium"
 requires-python = ">=3.12"
 dependencies = []
 
 [tool.setuptools.packages.find]
-include = ["kt_defaults*"]
+include = ["kt_biome*"]

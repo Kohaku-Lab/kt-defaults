@@ -15,7 +15,7 @@ Usage in config.yaml:
     plugins:
       - name: seamless_memory
         type: package
-        module: kt_defaults.plugins.seamless_memory
+        module: kt_biome.plugins.seamless_memory
         class: SeamlessMemoryPlugin
         options:
           model: openrouter/xiaomi/mimo-v2-flash

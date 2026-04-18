@@ -7,7 +7,7 @@ Usage in config.yaml:
 
     triggers:
       - type: custom
-        module: kt_defaults.triggers.webhook
+        module: kt_biome.triggers.webhook
         class_name: WebhookTrigger
         options:
           port: 9090

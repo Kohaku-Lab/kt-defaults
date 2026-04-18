@@ -1,8 +1,8 @@
-name: kt-defaults
+name: kt-biome
 version: "0.4.0"
 description: "Default creatures, terrariums, plugins, tools, I/O, and triggers for KohakuTerrarium"
 author: "Kohaku-Lab"
-repository: "https://github.com/Kohaku-Lab/kt-defaults"
+repository: "https://github.com/Kohaku-Lab/kt-biome"
 
 creatures:
   - name: general
@@ -14,24 +14,9 @@ creatures:
     description: "Software engineering specialist"
     base: general
 
-  - name: reviewer
-    path: creatures/reviewer
-    description: "Code review specialist"
-    base: general
-
-  - name: ops
-    path: creatures/ops
-    description: "Infrastructure and operations specialist"
-    base: general
-
   - name: researcher
     path: creatures/researcher
     description: "Research and analysis specialist"
-    base: general
-
-  - name: creative
-    path: creatures/creative
-    description: "Creative writing specialist"
     base: general
 
   - name: root
@@ -39,11 +24,31 @@ creatures:
     description: "Terrarium management, task delegation"
     base: general
 
+  - name: music
+    path: creatures/music
+    description: "Music composition via LilyPond"
+    base: general
+
+  - name: video
+    path: creatures/video
+    description: "HyperFrame video/frame composition (HTML-based)"
+    base: general
+
+  - name: diagrammer
+    path: creatures/diagrammer
+    description: "Diagram composition via Mermaid, Graphviz, and D2"
+    base: general
+
 terrariums:
   - name: swe_team
     path: terrariums/swe_team
-    description: "SWE team with root agent, swe, and reviewer"
-    uses: [swe, reviewer, root]
+    description: "Review pipeline: two swe instances, implementer + reviewer via role prompts"
+    uses: [swe, root]
+
+  - name: pair_programming
+    path: terrariums/pair_programming
+    description: "Driver/navigator pair; two swe instances with asymmetric channel wiring"
+    uses: [swe, root]
 
   - name: deep_research
     path: terrariums/deep_research
@@ -57,39 +62,39 @@ terrariums:
 
 plugins:
   - name: cost_tracker
-    module: kt_defaults.plugins.cost_tracker
+    module: kt_biome.plugins.cost_tracker
     class: CostTrackerPlugin
     description: "Track LLM token usage and estimated cost per session"
 
   - name: event_logger
-    module: kt_defaults.plugins.event_logger
+    module: kt_biome.plugins.event_logger
     class: EventLoggerPlugin
     description: "Structured JSONL event log of all agent activity"
 
   - name: multimodal_guard
-    module: kt_defaults.plugins.multimodal_guard
+    module: kt_biome.plugins.multimodal_guard
     class: MultimodalGuardPlugin
     description: "Rewrite multimodal LLM input into text-only placeholders before model calls"
 
 tools:
   - name: database
-    module: kt_defaults.tools.database
+    module: kt_biome.tools.database
     class: DatabaseTool
     description: "Execute SQL queries against a SQLite database"
 
 io:
   - name: discord_input
-    module: kt_defaults.io.discord
+    module: kt_biome.io.discord
     class: DiscordInput
     description: "Receive messages from Discord channels"
 
   - name: discord_output
-    module: kt_defaults.io.discord
+    module: kt_biome.io.discord
     class: DiscordOutput
     description: "Send agent responses to Discord channels"
 
 triggers:
   - name: webhook
-    module: kt_defaults.triggers.webhook
+    module: kt_biome.triggers.webhook
     class: WebhookTrigger
     description: "Receive HTTP POST webhooks as agent events"

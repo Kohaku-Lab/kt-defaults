@@ -10,7 +10,7 @@ Usage:
     plugins:
       - name: event_logger
         type: package
-        module: kt_defaults.plugins.event_logger
+        module: kt_biome.plugins.event_logger
         class: EventLoggerPlugin
         options:
           path: ./logs/events.jsonl

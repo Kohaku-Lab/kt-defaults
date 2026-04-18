@@ -11,7 +11,7 @@ Usage in config.yaml:
 
     input:
       type: custom
-      module: kt_defaults.io.discord
+      module: kt_biome.io.discord
       class_name: DiscordInput
       options:
         token_env: DISCORD_BOT_TOKEN
@@ -19,7 +19,7 @@ Usage in config.yaml:
 
     output:
       type: custom
-      module: kt_defaults.io.discord
+      module: kt_biome.io.discord
       class_name: DiscordOutput
       options:
         token_env: DISCORD_BOT_TOKEN
