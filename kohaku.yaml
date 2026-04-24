@@ -81,6 +81,11 @@ plugins:
     class: TerminationGoalPlugin
     description: "Vote termination when a scratchpad flag (default goal_achieved) is truthy. Demonstrates pluggable termination (cluster C.2)."
 
+  - name: checkpoint
+    module: kt_biome.plugins.checkpoint
+    class: CheckpointPlugin
+    description: "Snapshot the workspace via git stash before destructive tools (write/edit/multi_edit/destructive bash)."
+
   - name: context_files
     module: kt_biome.plugins.context_files
     class: ContextFilesPlugin
