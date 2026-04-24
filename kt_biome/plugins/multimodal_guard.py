@@ -5,8 +5,6 @@ text-only content at the shared ``pre_llm_call`` hook. It does not try to
 infer model capabilities; it is an explicit user-controlled policy toggle.
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from kohakuterrarium.modules.plugin.base import BasePlugin

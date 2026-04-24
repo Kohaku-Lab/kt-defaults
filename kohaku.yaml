@@ -86,6 +86,16 @@ plugins:
     class: CheckpointPlugin
     description: "Snapshot the workspace via git stash before destructive tools (write/edit/multi_edit/destructive bash)."
 
+  - name: circuit_breaker
+    module: kt_biome.plugins.circuit_breaker
+    class: CircuitBreakerPlugin
+    description: "Per-tool sliding-window failure counters with CLOSED/OPEN/HALF_OPEN state machine and exponential backoff."
+
+  - name: injection_scanner
+    module: kt_biome.plugins.injection_scanner
+    class: InjectionScannerPlugin
+    description: "Scan tool results (web_fetch/read/bash/mcp) for prompt-injection patterns; annotate/redact/block per policy."
+
   - name: context_files
     module: kt_biome.plugins.context_files
     class: ContextFilesPlugin
