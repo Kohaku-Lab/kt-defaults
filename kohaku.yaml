@@ -179,3 +179,9 @@ triggers:
     module: kt_biome.triggers.skill_nudge
     class: SkillNudgeTrigger
     description: "Periodic 'consider saving a skill' hint; silences itself when skill_manage is used."
+
+  # Cron scheduler — proposal §4.10 / X6.
+  - name: cron
+    module: kt_biome.triggers.cron
+    class: CronTrigger
+    description: "Fire on a cron schedule (5-field or 6-field with seconds); TZ-aware; skip_missed / run_once_if_missed backfill."
