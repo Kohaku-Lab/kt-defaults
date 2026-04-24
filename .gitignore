@@ -28,6 +28,8 @@ downloads/
 eggs/
 .eggs/
 lib/
+!kt_biome/lib/
+!kt_biome/lib/**
 lib64/
 parts/
 sdist/
