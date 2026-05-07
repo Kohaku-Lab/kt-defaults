@@ -58,6 +58,10 @@ env/
 .env.local
 .env.*.local
 
+# Local config overlays
+kohaku.local.yaml
+kohaku.local.yml
+
 # Testing
 .pytest_cache/
 .coverage

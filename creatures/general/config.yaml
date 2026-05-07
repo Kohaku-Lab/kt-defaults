@@ -84,6 +84,10 @@ plugins:
     module: kt_biome.plugins.family_guidance
     class: FamilyGuidancePlugin
 
+  - name: otel_metrics
+    module: kt_biome.plugins.otel_metrics
+    class: OTelMetricsPlugin
+
 output:
   type: stdout
   controller_direct: true

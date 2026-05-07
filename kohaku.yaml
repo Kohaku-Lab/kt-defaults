@@ -132,6 +132,13 @@ plugins:
     class: FamilyGuidancePlugin
     description: "Inject model-family-specific system guidance (openai/codex, gemini/gemma) at pre_llm_call."
 
+  - name: otel_metrics
+    module: kt_biome.plugins.otel_metrics
+    class: OTelMetricsPlugin
+    description: "Emit OpenTelemetry metrics (counters, histograms) for LLM calls, tool execution, sub-agent runs, and session lifecycle."
+    options:
+      service_name: kohaku-terrarium
+
 tools:
   - name: database
     module: kt_biome.tools.database
