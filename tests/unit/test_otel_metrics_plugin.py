@@ -5,6 +5,8 @@ Uses a controllable ``Clock`` stub for deterministic timing behaviour.
 """
 
 import sys
+import tempfile
+from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -105,7 +107,9 @@ def _ctx(agent_name: str = "test-agent", session_id: str = "sess-abc123"):
 
 def _make_plugin(options: dict | None = None) -> OTelMetricsPlugin:
     """Create plugin with mocked OTEL instruments pre-populated."""
-    plugin = OTelMetricsPlugin(options)
+    opts = dict(options or {})
+    opts.setdefault("collector_config_path", str(Path(tempfile.mkdtemp()) / "otel-collector.yaml"))
+    plugin = OTelMetricsPlugin(opts)
     plugin._ctx = _ctx()
     for name, _ in mod._COUNTER_DEFS:
         plugin._counters[name] = MagicMock()
@@ -120,7 +124,7 @@ def _make_plugin(options: dict | None = None) -> OTelMetricsPlugin:
 @pytest.mark.asyncio
 async def test_graceful_no_otel() -> None:
     """1. Plugin is a no-op when OTEL packages are not available."""
-    plugin = OTelMetricsPlugin()
+    plugin = OTelMetricsPlugin({"collector_config_path": str(Path(tempfile.mkdtemp()) / "otel-collector.yaml")})
     await plugin.on_load(_ctx("lonely"))
     assert plugin._agent_name == "lonely"
 
@@ -150,7 +154,7 @@ async def test_on_load_creates_instruments() -> None:
     p_provider = patch("kt_biome.plugins.otel_metrics.MeterProvider", mock_meter_provider_cls, create=True)
 
     with p_avail, p_resource, p_exporter, p_reader, p_provider:
-        plugin = OTelMetricsPlugin({"endpoint": "http://otel:4318/v1/metrics"})
+        plugin = OTelMetricsPlugin({"endpoint": "http://otel:4318/v1/metrics", "collector_config_path": str(Path(tempfile.mkdtemp()) / "otel-collector.yaml")})
         await plugin.on_load(_ctx())
 
     mock_meter.create_counter.assert_called()
@@ -689,7 +693,7 @@ async def test_on_load_creates_tracer_when_otel_available() -> None:
 
     with p_avail, p_trace, p_resource, p_exporter, p_reader, p_provider, \
          p_span_exporter, p_span_processor, p_tracer_provider, p_trace_api, p_status:
-        plugin = OTelMetricsPlugin({"endpoint": "http://otel:4318/v1/metrics"})
+        plugin = OTelMetricsPlugin({"endpoint": "http://otel:4318/v1/metrics", "collector_config_path": str(Path(tempfile.mkdtemp()) / "otel-collector.yaml")})
         await plugin.on_load(_ctx())
 
     mock_tracer_provider.get_tracer.assert_called_once()
@@ -793,3 +797,52 @@ async def test_uuid_not_used_when_session_id_present() -> None:
     await plugin.on_interrupt()
     calls = plugin._counters["kt.interrupts"].add.call_args_list
     assert calls[0][0][1]["session_id"] == "my-real-session"
+
+
+# ── Collector config template tests ──────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_collector_config_created_on_first_load() -> None:
+    """35. on_load creates collector config template at configured path if absent."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config_path = Path(tmpdir) / "otel-collector.yaml"
+        plugin = OTelMetricsPlugin({"collector_config_path": str(config_path)})
+        assert not config_path.exists()
+
+        await plugin.on_load(_ctx("config-test"))
+
+        assert config_path.exists()
+        content = config_path.read_text()
+        assert "receivers:" in content
+        assert "otlp:" in content
+        assert "exporters:" in content
+        assert "prometheus:" in content
+
+
+@pytest.mark.asyncio
+async def test_collector_config_not_overwritten_on_reload() -> None:
+    """36. on_load does not overwrite an existing collector config."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config_path = Path(tmpdir) / "otel-collector.yaml"
+        config_path.write_text("my-custom-config: true\n")
+
+        plugin = OTelMetricsPlugin({"collector_config_path": str(config_path)})
+        await plugin.on_load(_ctx())
+
+        assert config_path.read_text() == "my-custom-config: true\n"
+
+
+@pytest.mark.asyncio
+async def test_collector_config_default_path() -> None:
+    """37. Default collector config path is ~/.kohakuterrarium/otel-collector.yaml."""
+    plugin = OTelMetricsPlugin()
+    expected = Path.home() / ".kohakuterrarium" / "otel-collector.yaml"
+    assert plugin._collector_config_path == expected
+
+
+@pytest.mark.asyncio
+async def test_collector_config_custom_path() -> None:
+    """38. collector_config_path can be overridden via options."""
+    plugin = OTelMetricsPlugin({"collector_config_path": "/tmp/my-otel.yaml"})
+    assert plugin._collector_config_path == Path("/tmp/my-otel.yaml")
