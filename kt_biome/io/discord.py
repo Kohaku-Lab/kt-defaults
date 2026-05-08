@@ -41,6 +41,7 @@ logger = get_logger(__name__)
 
 # Shared client instance (input and output share the same bot connection)
 _client = None
+_client_task: asyncio.Task | None = None
 _client_lock = asyncio.Lock()
 
 
@@ -70,7 +71,8 @@ async def _get_client(token: str):
             logger.info("Discord bot connected", user=str(client.user))
             ready_event.set()
 
-        asyncio.create_task(client.start(token))
+        global _client_task
+        _client_task = asyncio.create_task(client.start(token))
         await asyncio.wait_for(ready_event.wait(), timeout=30)
         _client = client
         return client
@@ -82,7 +84,7 @@ class DiscordInput(BaseInputModule):
     def __init__(self, options: dict[str, Any] | None = None):
         opts = options or {}
         self._token_env = opts.get("token_env", "DISCORD_BOT_TOKEN")
-        self._channel_ids = set(int(c) for c in opts.get("channel_ids", []))
+        self._channel_ids = {int(c) for c in opts.get("channel_ids", [])}
         self._queue: asyncio.Queue[TriggerEvent] = asyncio.Queue()
         self._client = None
         self._handler_registered = False

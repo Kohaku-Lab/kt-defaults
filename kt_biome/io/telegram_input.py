@@ -167,8 +167,6 @@ class TelegramInput(BaseInputModule):
             # Stay alive until cancelled.
             while True:
                 await asyncio.sleep(3600)
-        except asyncio.CancelledError:
-            pass
         except Exception as exc:
             logger.error("Telegram polling crashed", error=str(exc))
         finally:
