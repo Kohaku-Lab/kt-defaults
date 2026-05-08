@@ -42,7 +42,7 @@ Usage in config.yaml::
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -86,7 +86,7 @@ SENTINEL = "<!-- kt-context-files -->"
 @dataclass
 class _Options:
     enabled: bool = True
-    files: list[str] = None  # type: ignore[assignment]
+    files: list[str] = field(default_factory=list)
     walk_from: str = "cwd"
     stop_at: str = "git_root"
     max_total_bytes: int = 32768
@@ -95,7 +95,7 @@ class _Options:
     injection_action: str = "block"
     position: str = "after_system"
     preamble: str = "Repository context files loaded by KohakuTerrarium:"
-    agent_names: list[str] = None  # type: ignore[assignment]
+    agent_names: list[str] = field(default_factory=list)
     reload_per_turn: bool = True
 
     @classmethod

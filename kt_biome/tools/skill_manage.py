@@ -136,9 +136,9 @@ class SkillManageTool(BaseTool):
 
     def get_parameters_schema(self) -> dict[str, Any]:
         s = {"type": "string"}
-        props: dict[str, Any] = {
-            k: s for k in ("name", "description", "body", "new_body")
-        }
+        props: dict[str, Any] = dict.fromkeys(
+            ("name", "description", "body", "new_body"), s
+        )
         props["action"] = {"type": "string", "enum": list(_ACTIONS)}
         props["scope"] = {"type": "string", "enum": list(_SCOPES)}
         props["merge_mode"] = {"type": "string", "enum": list(_MERGE_MODES)}

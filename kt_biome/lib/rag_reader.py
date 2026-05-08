@@ -162,7 +162,7 @@ class RAGReader:
         try:
             record = self._kv[node_id]
             return _deserialize(record)
-        except (KeyError, Exception):
+        except KeyError:
             return None
 
     # ── Context expansion ────────────────────────────────────────────
