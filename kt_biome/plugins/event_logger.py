@@ -146,7 +146,7 @@ class EventLoggerPlugin(BasePlugin):
 
     async def on_event(self, event=None) -> None:
         event_type = getattr(event, "type", "unknown") if event else "unknown"
-        self._emit("event_received", event_type=event_type)
+        self._emit("event_received", subtype=event_type)
 
     async def on_interrupt(self) -> None:
         self._emit("interrupt")
